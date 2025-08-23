@@ -1,0 +1,44 @@
+# Usb Config (easy pairing adb apps like brevent/ladb/remote adb withour rooting acces or pairing usb debag/debugging nircable)
+service.adb.tcp.port=5555
+persist.sys.usb.config=mtp,adb
+#Transparansi  
+persist.sys.use_8bpp_alpha=1
+#LowRamFlag
+ro.config.low_ram=true
+ro.config.low_ram.threshold_gb=1
+ro.config.small_battery=true
+ro.config.per_app_memcg=true
+
+# Mengaktifkan Hardware Rendering untuk UI (User Interface)
+debug.sf.hw=1
+debug.egl.hw=1
+debug.composition.type=gpu
+
+# Kualitas Gambar
+ro.media.enc.jpeg.quality=50
+
+# Kualitas Video
+ro.media.enc.hprof.vid.quality=low
+ro.media.enc.hprof.vid.fps=20
+ro.media.enc.hprof.vid.bps=5000000
+
+# Mengaktifkan akselerasi hardware untuk video
+video.accelerate.hw=1
+
+# Menggunakan DNS Google (atau Cloudflare: 1.1.1.1, 1.0.0.1)
+net.dns1=1.1.1.1
+net.dns2=8.8.8.8
+
+# Tweak TCP untuk kecepatan
+net.tcp.buffersize.default=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.wifi=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.umts=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.gprs=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.edge=4096,87380,256960,4096,16384,256960
+
+# Meningkatkan kecepatan scrolling
+ro.min.fling_velocity=8000
+ro.max.fling_velocity=12000
+
+# Meningkatkan jumlah event sentuhan yang diproses per detik
+windowsmgr.max_events_per_sec=150

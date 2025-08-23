@@ -1,0 +1,19 @@
+#cpuruntime breaker
+breaker () {
+source /sdcard/DianTk-Modz-Perf/applist_perf.txt
+cmd settings put system rt_pkg_black_list ""
+cmd settings put system rt_pkg_white_list ""
+
+# Path to the game_list.txt file
+file_path="/storage/emulated/0/DianTk-Modz-Perf/applist_perf.txt"
+
+rt_high_device_level=$(paste -sd "," "$file_path")
+perf_proc_game_List=$(paste -sd "," "$file_path")
+# Set the rt_high_device_level setting
+settings_command="settings put system rt_high_device_level \"$rt_high_device_level\""
+comand="settings put system perf_proc_game_List \"$perf_proc_game_List\""
+# Execute the settings command
+eval "$settings_command"
+eval "$comand"
+}
+breaker > /dev/null 2>&1

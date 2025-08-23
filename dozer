@@ -1,0 +1,5 @@
+#Dozer
+for a in $(pm list packages | cut -f2 -d ':' | grep -v -F -f /sdcard/DianTk-Modz-Perf/dozer_exept.txt);do cmd activity set-bg-restriction-level --user 0 "$a" hibernation;cmd activity set-inactive "$a" true;cmd activity set-standby-bucket "$a" restricted;cmd activity set-standby-bucket "$a" 50;cmd app_hibernation set-state "$a" true;cmd appops set "$a" RUN_ANY_IN_BACKGROUND ignore;cmd appops set "$a" RUN_IN_BACKGROUND ignore;cmd tare set-vip 0 "$a" false;dumpsys deviceidle whitelist -"$a";done > /dev/null 2>&1
+
+#allways on
+for on in $(cat /sdcard/DianTk-Modz-Perf/dozer_exept.txt); do am set-inactive "$on" false;cmd appops set "$on" RUN_IN_BACKGROUND allow;cmd appops set "$on" RUN_ANY_IN_BACKGROUND allow;dumpsys deviceidle whitelist +"$on";done > /dev/null 2>&1

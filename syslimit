@@ -1,0 +1,18 @@
+#disable syslimiter
+apply () {
+chmod 0755 /proc/perfmgr/syslimiter/syslimiter_tolerance_percent
+echo '0' > /proc/perfmgr/syslimiter/syslimiter_tolerance_percent
+chmod 0755 /proc/perfmgr/syslimiter/syslimiter_fps_60
+chmod 0755 /proc/perfmgr/syslimiter/syslimiter_fps_120
+chmod 0755 /proc/perfmgr/syslimiter/syslimiter_fps_144
+echo '0' > /proc/perfmgr/syslimiter/syslimiter_fps_60
+echo '0' > /proc/perfmgr/syslimiter/syslimiter_fps_120
+echo '0' > /proc/perfmgr/syslimiter/syslimiter_fps_144
+chmod 0777 /proc/perfmgr/syslimiter/syslimiter_force_disable
+echo '1' > /proc/perfmgr/syslimiter/syslimiter_force_disable
+chmod 0444 /proc/perfmgr/syslimiter/syslimiter_fps_60
+chmod 0444 /proc/perfmgr/syslimiter/syslimiter_fps_120
+chmod 0444 /proc/perfmgr/syslimiter/syslimiter_fps_144
+chmod 0444 /proc/perfmgr/syslimiter/syslimiter_force_disable
+}
+apply > /dev/null 2>&1
