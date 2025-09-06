@@ -1,0 +1,5 @@
+com.facebook.orca
+com.pengyou.cloneapp
+tkstudio.autoresponderforfb
+com.whatsapp
+com.android.systemui
