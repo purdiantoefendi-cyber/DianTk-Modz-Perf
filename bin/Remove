@@ -1,0 +1,4 @@
+#!/bin/sh
+settings delete system rt_pkg_black_list
+settings delete system rt_pkg_white_list
+settings delete system rt_highlevel_device_list
