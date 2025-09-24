@@ -1,8 +1,0 @@
-#!/bin/sh
-for thermal in $(resetprop | awk -F '[][]' '/thermal/ {print $2}'); do
-if [[ $(resetprop $thermal) == running ]]; then
-stop ${thermal/init.svc.}
-fi
-done
-find /sys/devices/virtual/thermal -name temp -type f -exec chmod 000 {} +
-
