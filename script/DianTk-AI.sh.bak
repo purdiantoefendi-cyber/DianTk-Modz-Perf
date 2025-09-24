@@ -1,0 +1,102 @@
+#!/system/bin/sh
+# combined_service.sh - AI Perf Manager + Proteksi App (log proteksi no spam + simpan ke file)
+# By Morpheus / DianTk Modz Edition
+
+sleep 1
+
+# === Path dasar ===
+BASEDIR=/data/adb/modules/DianTk-Modz-Perf
+INT=/storage/emulated/0
+AGD=$INT/DianTk-Modz-Perf
+LOG=$AGD/DianTk-log.log
+MSC=$BASEDIR/script
+
+# === File daftar app ===
+LIST_FILE="$AGD/dozer_exept.txt"
+APP_LIST="$AGD/applist_perf.txt"
+
+# === Notif AI start ===
+am start -a android.intent.action.MAIN -e toasttext "🤖 Ai is started..." -n bellavita.toast/.MainActivity
+echo " 🤖 Ai is started" >> $LOG
+
+# === Lokasi skrip perf ===
+PERF_SCRIPT="$MSC/perf.sh"
+DEFAULT_SCRIPT="$MSC/default.sh"
+SAVE_SCRIPT="$MSC/save.sh"
+
+# === Variabel tracking state ===
+LAST_STATE=""
+CURRENT_APP=""
+
+# === Tracking PID proteksi biar tidak spam log ===
+PROTECTED_PIDS=""
+
+# === Fungsi AI perf manager ===
+run_script() {
+    local new_state=$1
+    if [ "$LAST_STATE" != "$new_state" ]; then
+        echo "State changed from '$LAST_STATE' to '$new_state'"
+        echo "State changed from '$LAST_STATE' to '$new_state'" >> $LOG
+        case "$new_state" in
+            "perf")    sh $PERF_SCRIPT ;;
+            "default") sh $DEFAULT_SCRIPT ;;
+            "save")    sh $SAVE_SCRIPT ;;
+        esac
+        LAST_STATE=$new_state
+    fi
+}
+
+# === Fungsi cek apakah PID sudah pernah diproteksi ===
+is_protected() {
+    echo "$PROTECTED_PIDS" | grep -qw "$1"
+}
+
+mark_protected() {
+    PROTECTED_PIDS="$PROTECTED_PIDS $1"
+}
+
+# === Loop utama gabungan ===
+while true; do
+    ##### Bagian 1: AI Perf Manager #####
+    SCREEN_ON=$(dumpsys power | grep "mWakefulness=" | cut -d'=' -f2)
+
+    if [ "$SCREEN_ON" = "Awake" ]; then
+        CURRENT_APP=$(dumpsys window | grep -E 'mCurrentFocus|mFocusedApp' | \
+                      awk -F'/' '{print $1}' | awk '{print $NF}')
+        if [ -n "$CURRENT_APP" ] && grep -q "^${CURRENT_APP}$" "$APP_LIST"; then
+            run_script "perf"
+        else
+            run_script "default"
+        fi
+    else
+        run_script "save"
+    fi
+
+    ##### Bagian 2: Proteksi App dari dozer_exept.txt #####
+    if [ -f "$LIST_FILE" ]; then
+        while read -r APP; do
+            [ -z "$APP" ] && continue
+            PID=$(pidof "$APP")
+            [ -z "$PID" ] && continue
+
+            for P in $PID; do
+                echo -1000 > /proc/$P/oom_score_adj 2>/dev/null
+                [ -d /dev/stune/top-app ]  && echo $P > /dev/stune/top-app/tasks 2>/dev/null
+                [ -d /dev/cpuctl/top-app ] && echo $P > /dev/cpuctl/top-app/tasks 2>/dev/null
+                [ -d /dev/cpuset/top-app ] && echo $P > /dev/cpuset/top-app/tasks 2>/dev/null
+                dumpsys deviceidle whitelist +$APP 2>/dev/null
+
+                # Log hanya kalau PID baru diproteksi
+                if ! is_protected "$P"; then
+                    MSG=" •> Proteksi aktif di top-app untuk $APP (PID $P)"
+                    echo "$MSG"
+                    echo "$MSG" >> $LOG
+                    mark_protected "$P"
+                fi
+            done
+        done < "$LIST_FILE"
+    fi
+
+    # Delay loop
+    sleep 2
+done

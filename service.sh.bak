@@ -179,7 +179,7 @@ nohup sh "$MODDIR/breaker" &
 nohup sh "$MODDIR/syslimit" &
 
 #fast charging
-#nohup sh "$MODDIR/fast_charging" &
+nohup sh "$MODDIR/fast_charging" &
 
 # Done
 su -lp 2000 -c "cmd notification post -S bigtext -t 'DianTk Modz Perf' tag '🎉 All optimization is applied...'" >/dev/null 2>&1

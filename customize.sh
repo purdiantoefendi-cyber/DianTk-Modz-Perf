@@ -1,6 +1,6 @@
 #!/sbin/sh
 
-MODPATH="$(cd "$(dirname "$0")" && pwd)"
+MODPATH=/data/adb/modules_update/DianTk-Modz-Perf
 
 # Set what you want to display when installing your module
 
@@ -101,9 +101,6 @@ echo $SWAP_FILE_PRIOR > /data/swap/SWAP_FILE_PRIOR
 echo $SWAPPINESS > /data/swap/SWAPPINESS
 echo $SWAPPINESS > /proc/sys/vm/swappiness
 ui_print "- [OK]"
-    
-# Install toast app
-ui_print " - Install toast app: $(pm install $MODPATH/Toast.apk)"
 
 # busybox
 deploy(){
@@ -185,6 +182,24 @@ else
     fi;
 
     ui_print "- Brutal busybox by FeraVolt installed successfully."
+    
+# Install toast app
+ui_print "• Menginstall Toast.apk..."
+
+APK="$MODPATH/Toast.apk"
+PKG="bellavita.toast"
+
+if [ -f "$APK" ]; then
+  if pm install -r "$APK" >/dev/null 2>&1; then
+    ui_print "   [✓] Berhasil install $PKG"
+    rm -f "$APK"
+  else
+    ui_print "   [✗] Gagal install $PKG"
+    rm -f "$APK"
+  fi
+else
+  ui_print "   [!] File $APK tidak ditemukan"
+fi
     
 # Check directory
 if [ ! -e /storage/emulated/0/DianTk-Modz-Perf ]; then

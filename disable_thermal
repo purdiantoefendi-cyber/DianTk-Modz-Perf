@@ -1,0 +1,162 @@
+# --- Start of Atlantis ---
+#!/bin/sh
+write() {
+	# Bail out if file does not exist
+	[[ ! -f "$1" ]] && return 1
+
+	# Make file writable in case it is not already
+	chmod +w "$1" 2> /dev/null
+
+	# Write the new value and bail if there's an error
+	if ! echo "$2" > "$1" 2> /dev/null
+	then
+		echo "Failed: $1 → $2"
+		return 1
+	fi
+
+	# Log the success
+	echo "$1 → $2"
+}
+#sikasik
+test() {
+chmod 0755 /sys/kernel/eara_thermal
+chmod 0755 /sys/kernel/eara_thermal/enable
+chmod 0000 /sys/devices/virtual/thermal/thermal*
+chmod 000 /sys/power/cpufreq_min_limit
+chmod 000 /sys/power/cpufreq_max_limit
+chmod 0000 /sys/devices/virtual/thermal/thermal*/*
+chmod 0000 /sys/devices/virtual/thermal/thermal*/*/*
+echo '0' > /sys/kernel/eara_thermal/enable;
+echo '1' > /sys/kernel/eara_thermal/fake_throttle;
+echo '0' > /proc/mtk-perf/mt_throttle_ms
+echo '0' > /proc/perfmgr/boost_ctrl/eas_ctrl/debug_schedplus_up_throttle
+echo '0' > /proc/perfmgr/boost_ctrl/eas_ctrl/debug_schedplus_down_throttle
+echo '0' > /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_schedplus_up_throttle
+echo '0' > /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_schedplus_down_throttle
+echo '0' > /sys/kernel/fpsgo/fbt/enable_switch_down_throttle
+echo '0' > /sys/module/dm_snapshot/parameters/snapshot_copy_throttle
+echo '0' > /sys/kernel/tracing/events/power/powernv_throttle/enable
+echo '0' > /sys/devices/platform/bootdevice/ufshpb_lu2/throttle_pre_req
+echo '0' > /sys/devices/platform/bootdevice/ufshpb_lu2/throttle_map_req
+echo '0' > /sys/kernel/tracing/instances/wifi/events/power/powernv_throttle/enable
+echo '0' > /sys/kernel/tracing/instances/bootreceiver/events/power/powernv_throttle/enable
+chmod 0000 /proc/driver/thermal*
+chmod 0000 /proc/driver/thermal*/*
+chmod 0000 /proc/driver/thermal*/*/
+chmod 0000 /proc/irq/305/mtk-thermal*
+chmod 0000 /proc/irq/305/mtk-thermal*/*
+chmod 0000 /proc/irq/305/mtk-thermal*/*/*
+chmod 0000 /proc/ppm/policy/thermal_limit
+chmod 0000 /proc/ppm/policy/thermal_cur_power
+echo 'N' > /sys/module/msm_thermal/parameters/enabled;
+echo '0' > /sys/module/overheat_mitigation/parameters/enable;
+echo '0' > /sys/module/msm_thermal/core_control/cpus_offlined;
+echo '0' > /sys/module/msm_thermal/core_control/enabled;
+echo '0' > /proc/cpufreq/cpufreq_imax_thermal_protect;
+
+therm_pol_set() 
+	[[ -d "$therm" ]] && 
+		write "/sys/class/thermal/tz-by-name/xo-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/skin-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/camera-ftherm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/camera-flash-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/rf-pa0-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/rf-pa1-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem0-pa0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem0-pa1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-pa0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-pa1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-pa2-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-qfe-wtr-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-modem-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-mmw0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-mmw1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-mmw2-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-mmw3-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-skin-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-pa-mdm-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/modem1-pa-wtr-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/aoss0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-0-0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-0-1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-0-2-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-0-3-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-1-0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-1-1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-1-2-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpu-1-3-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/gpu-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpuss-0-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpuss-1-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/cpuss-2-usr/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/lmh-dcvs-00/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/lmh-dcvs-01/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/quiet-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/emmc-ufs-therm-adc" "step_wise"
+		write "/sys/class/thermal/tz-by-name/quiet-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/sdm-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/charger-skin-therm-adc/policy" "step_wise"
+		write "/sys/class/thermal/tz-by-name/conn-therm-adc/policy" "step_wise"
+	
+
+#
+	[[ "$1" == "1" ]] && 
+		chmod 644 "/sys/class/thermal/thermal_message/board_sensor_temp" 
+		pm enable com.xiaomi.gamecenter.sdk.service/.PidService >/dev/null 2>&1 &
+		write "/sys/class/thermal/thermal_message/board_sensor_temp" "36000"
+		chmod 000 "/sys/class/thermal/thermal_message/board_sensor_temp"
+		pm clear com.xiaomi.gamecenter.sdk.service 
+		pm disable com.xiaomi.gamecenter.sdk.service/.PidService >/dev/null 2>&1 &
+}
+test > /dev/null 2>&1
+
+Atlantis () {
+# --- End of Atlantis ---
+
+-# --- Start of @Z907L ---
+#!/bin/sh
+testo() {
+for thermal in $(resetprop | awk -F '[][]' '/thermal/ {print $2}'); do
+if [[ $(resetprop $thermal) == running ]]; then
+while true; do
+stop ${thermal/init.svc.}
+done
+fi
+done
+find /sys/devices/virtual/thermal -name temp -type f -exec chmod 000 {} +
+}
+testis() {
+for thermal in $(resetprop | awk -F '[][]' '/thermal/ {print $2}'); do
+if [[ $(resetprop $thermal) == running ]]; then
+stop ${thermal/init.svc.}
+fi
+done
+find /sys/devices/virtual/thermal -name temp -type f -exec chmod 000 {} +
+}
+testis
+sleep 5
+testo
+
+# --- End of @Z907L ---
+
+# --- Start of local ---
+#!/bin/sh
+for thermal in $(resetprop | awk -F '[][]' '/thermal/ {print $2}'); do
+if [[ $(resetprop $thermal) == running ]]; then
+stop ${thermal/init.svc.}
+fi
+done
+find /sys/devices/virtual/thermal -name temp -type f -exec chmod 000 {} +
+
+
+# --- End of local ---
+
+} >/dev/null 2>&1 &
+
+# Set
+LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
+echo " •> Disable Thermal Activated at $(date "+%H:%M:%S")" >> $LOG
+
+# Report
+am start -a android.intent.action.MAIN -e toasttext "Disable Thermal Activated" -n bellavita.toast/.MainActivity
+

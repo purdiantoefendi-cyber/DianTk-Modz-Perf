@@ -1,0 +1,63 @@
+#!/system/bin/sh
+#Fast Charge
+#Author: NTH
+
+# Set
+LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
+echo " •> Fast Charging activated at $(date "+%H:%M:%S")" >> $LOG
+
+# Report
+am start -a android.intent.action.MAIN -e toasttext "Fast Charging activated" -n bellavita.toast/.MainActivity
+
+set_value()
+{
+    if [[ -f "$2" ]];
+    then
+        chmod 0666 "$2"
+        echo "$1" > "$2"
+        chmod 0444 "$2"
+    fi
+}
+fast_charge() {
+paths=`ls /sys/class/power_supply/*/$1`
+for path in $paths
+    do
+    set_value $FC $path
+done
+
+}
+fast_charge=`echo "$(cat /sys/class/power_supply/battery/charge_full)"/1000|bc`
+fast_charge1=`expr $fast_charge + 1000`
+FC=`expr $fast_charge \* 1000`
+FCC=`expr $fast_charge1 \* 1000`
+CF=`expr 4000 \* 1000`
+BMS=/sys/devices/platform/soc/c440000.qcom,spmi/spmi-0/spmi0-02/c440000.qcom,spmi:qcom,pm8150b@2:qpnp,fg/power_supply/bms
+
+while true; do
+set_value '1' /sys/kernel/fast_charge/force_fast_charge
+set_value '1' /sys/class/power_supply/battery/system_temp_level
+set_value '1' /sys/kernel/fast_charge/failsafe
+set_value '1' /sys/class/power_supply/battery/allow_hvdcp3
+set_value '1' /sys/class/power_supply/usb/pd_allowed
+set_value '1' /sys/class/power_supply/battery/subsystem/usb/pd_allowed
+set_value '0' /sys/class/power_supply/battery/input_current_limited
+set_value '1' /sys/class/power_supply/battery/input_current_settled
+set_value '0' /sys/class/qcom-battery/restricted_charging
+set_value '150' /sys/class/power_supply/bms/temp_cool
+set_value '480' /sys/class/power_supply/bms/temp_hot
+set_value '480' /sys/class/power_supply/bms/temp_warm
+
+#set_value $CF $BMS/charge_full
+set_value '0' /sys/class/qcom-battery/restrict_chg
+
+set_value $FCC /sys/class/qcom-battery/restricted_current
+set_value $FCC /sys/class/qcom-battery/restrict_cur
+
+fast_charge current_max
+fast_charge hw_current_max
+fast_charge pd_current_max
+fast_charge ctm_current_max
+fast_charge sdp_current_max
+fast_charge constant_charge_current_max
+sleep 2
+done

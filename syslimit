@@ -16,3 +16,10 @@ chmod 0444 /proc/perfmgr/syslimiter/syslimiter_fps_144
 chmod 0444 /proc/perfmgr/syslimiter/syslimiter_force_disable
 }
 apply > /dev/null 2>&1
+
+# Set
+LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
+echo " •> Disable SysLimit activated at $(date "+%H:%M:%S")" >> $LOG
+
+# Report
+am start -a android.intent.action.MAIN -e toasttext "Disable SysLimit activated" -n bellavita.toast/.MainActivity

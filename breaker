@@ -17,3 +17,10 @@ eval "$settings_command"
 eval "$comand"
 }
 breaker > /dev/null 2>&1
+
+# Set
+LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
+echo " •> CPU Runtime Breaker activated at $(date "+%H:%M:%S")" >> $LOG
+
+# Report
+am start -a android.intent.action.MAIN -e toasttext "CPU Runtime Breaker activated" -n bellavita.toast/.MainActivity

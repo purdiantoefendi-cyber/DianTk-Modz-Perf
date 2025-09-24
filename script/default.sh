@@ -1,5 +1,4 @@
 #!/system/bin/sh
-#By Morpheus
 
 # Sync to data in the rare case a device crashes
 sync
@@ -37,19 +36,119 @@ done
 cmd power set-fixed-performance-mode-enabled false
 
 settings put global low_power 0
-#for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
-#    echo "userspace" > "$cpu"
-#done
-for s in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $s/cpuinfo_max_freq; done
-#autocpu
-for j in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $j/scaling_governor; done
-for l in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo userspace > $l/scaling_governor; done
-for i in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo 1400000 > $i/scaling_setspeed; done
+
+# perf-reset.sh - Reset Extreme Performance Mode
+
+CPU_CTL="/dev/cpuctl/diantk_modz"
+CPUSET="/dev/cpuset/diantk_modz"
+STUNE="/dev/stune/diantk_modz"
+
+# ============================================
+# 1. CPU SHARES kembali default (1024 biasanya)
+# ============================================
+echo 1024 > $CPU_CTL/cpu.shares 2>/dev/null
+echo 1024 > $STUNE/cpu.shares 2>/dev/null
+
+# ============================================
+# 2. CPU QUOTA default (100% quota)
+#    100000 us = 100ms period, quota = 100000 us
+# ============================================
+echo 100000 > $CPU_CTL/cpu.cfs_quota_us 2>/dev/null
+echo 100000 > $STUNE/cpu.cfs_quota_us 2>/dev/null
+
+# ============================================
+# 3. CPUSET default → semua core tetap diizinkan
+#    tapi biasanya di OS, cpuset dibagi (top-app, bg, dsb)
+#    jadi kalau perlu reset penuh, bisa dibiarkan kosong
+# ============================================
+if [ -f $CPUSET/cpus ]; then
+    echo 0 > $CPUSET/cpus 2>/dev/null   # fallback: cuma core 0
+fi
+
+if [ -f $CPUSET/mems ]; then
+    echo 0 > $CPUSET/mems 2>/dev/null   # fallback: cuma mem node 0
+fi
+
+# ============================================
+# 4. MEMORY reset (jika tersedia)
+# ============================================
+if [ -f $CPUSET/memory.swappiness ]; then
+    echo 60 > $CPUSET/memory.swappiness 2>/dev/null  # default Linux = 60
+fi
+
+if [ -f $CPUSET/memory.oom.group ]; then
+    echo 0 > $CPUSET/memory.oom.group 2>/dev/null
+fi
+
+if [ -f $CPUSET/memory.max ]; then
+    echo max > $CPUSET/memory.max 2>/dev/null
+fi
+
+# ============================================
+# 5. LOG INFO
+# ============================================
+echo " •> Extreme Performance Mode reset → default"
+
+# Aktifkan semua little core (cpu0–cpu3)
+for c in /sys/devices/system/cpu/{cpu0,cpu1,cpu2,cpu3}/online; do
+    echo 1 > $c
+done
+
+# Matikan sebagian big core (cpu4, cpu5)
+for c in /sys/devices/system/cpu/{cpu4,cpu5}/online; do
+    echo 0 > $c
+done
+
+# Aktifkan sebagian big core (cpu6, cpu7)
+for c in /sys/devices/system/cpu/{cpu6,cpu7}/online; do
+    echo 1 > $c
+done
+
+#New
+# Target frekuensi (1.4 GHz)
+TARGET=1450000
+
+for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
+    GOV="$cpu/cpufreq/scaling_governor"
+    MIN="$cpu/cpufreq/scaling_min_freq"
+    MAX="$cpu/cpufreq/scaling_max_freq"
+    SET="$cpu/cpufreq/scaling_setspeed"
+    AVAIL="$cpu/cpufreq/scaling_available_frequencies"
+
+    # Pastikan file tersedia
+    [ -f "$AVAIL" ] || continue
+
+    # Ambil daftar frekuensi CPU ini
+    FREQS=$(cat $AVAIL)
+    arr=($FREQS)
+
+    # Cari frekuensi terdekat dengan target
+    closest=${arr[0]}
+    for f in "${arr[@]}"; do
+        diff=$((f > TARGET ? f - TARGET : TARGET - f))
+        best=$((closest > TARGET ? closest - TARGET : TARGET - closest))
+        if [ $diff -lt $best ]; then
+            closest=$f
+        fi
+    done
+
+    FREQ=$closest
+    echo "CPU$(basename $cpu) → lock ke $FREQ kHz (target $TARGET)"
+
+    # Set permission (kalau perlu)
+    chmod 0666 $GOV $MIN $MAX $SET
+
+    # Set governor ke userspace
+    echo userspace > $GOV
+
+    # Lock min/max/setspeed
+    echo $FREQ > $MIN
+    echo $FREQ > $MAX
+    echo $FREQ > $SET
+done
 
 # Set balance
 echo " •> ❄️ Default mode activated at $(date "+%H:%M:%S")" >> $LOG
 
 #report
 am start -a android.intent.action.MAIN -e toasttext "❄️ Default Mode..." -n bellavita.toast/.MainActivity
-
-exit 0
