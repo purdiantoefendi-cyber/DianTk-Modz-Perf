@@ -96,12 +96,12 @@ done
 
 # Matikan sebagian big core (cpu4, cpu5)
 for c in /sys/devices/system/cpu/{cpu4,cpu5}/online; do
-    echo 0 > $c
+    echo 1 > $c
 done
 
 # Aktifkan sebagian big core (cpu6, cpu7)
 for c in /sys/devices/system/cpu/{cpu6,cpu7}/online; do
-    echo 1 > $c
+    echo 0 > $c
 done
 
 #New
