@@ -4,6 +4,8 @@
 BASEDIR=/data/adb/modules/DianTk-Modz-Perf
 LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
 
+nohup sh "$BASEDIR/powersave_thermal" &
+
 # Sync to data in the rare case a device crashes
 sync
 

@@ -1,0 +1,57 @@
+#!/system/bin/sh
+# Script 2: Enable Thermal Default (Safe/Daily Mode)
+# Created for DianTk_Modz
+
+LOG="/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log"
+
+restore_value() {
+    if [ -f "$2" ]; then
+        chmod 0644 "$2"
+        echo "$1" > "$2"
+    fi
+}
+
+restore_thermal() {
+    # 1. Restore MTK Throttling
+    restore_value "1" /sys/kernel/eara_thermal/enable
+    restore_value "0" /sys/kernel/eara_thermal/fake_throttle
+    restore_value "1" /proc/mtk-perf/mt_throttle_ms
+    restore_value "1" /sys/kernel/fpsgo/fbt/enable_switch_down_throttle
+    
+    # 2. Restore Qualcomm/Generic
+    restore_value "Y" /sys/module/msm_thermal/parameters/enabled
+    restore_value "1" /sys/module/overheat_mitigation/parameters/enable
+    restore_value "1" /sys/module/msm_thermal/core_control/enabled
+    restore_value "1" /proc/cpufreq/cpufreq_imax_thermal_protect
+    
+    # 3. Restore Policies (Step Wise is usually default)
+    find /sys/class/thermal/tz-by-name/*/policy -type f | while read policy; do
+        restore_value "step_wise" "$policy"
+    done
+    
+    # 4. Restore Xiaomi Service
+    pm enable com.xiaomi.gamecenter.sdk.service/.PidService >/dev/null 2>&1
+}
+
+start_services() {
+    # Restart thermal services
+    find /system/etc/init /vendor/etc/init -type f 2>/dev/null | xargs grep -h "^service" | awk '{print $2}' | grep -i thermal | while read -r svc; do
+        start "$svc"
+    done
+}
+
+restore_sensors() {
+    # Restore permissions to readable
+    find /sys/devices/virtual/thermal -name "temp" -type f -exec chmod 644 {} +
+    chmod 644 /sys/class/thermal/thermal_message/board_sensor_temp
+    chmod 644 /proc/driver/thermal*
+}
+
+# Execution
+restore_sensors
+restore_thermal
+start_services
+
+# Logging & Toast
+echo " •> Default Thermal Restored at $(date "+%H:%M:%S")" >> "$LOG"
+am start -a android.intent.action.MAIN -e toasttext "🛡️ Thermal DEFAULT (Safe Mode)" -n bellavita.toast/.MainActivity >/dev/null 2>&1

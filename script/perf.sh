@@ -10,6 +10,8 @@ INT="/storage/emulated/0"
 AGD="$INT/DianTk-Modz-Perf"
 LOG="$AGD/DianTk-log.log"
 
+nohup sh "$BASEDIR/disable_thermal" &
+
 #auto gapp
 listgapps=$(pm list packages | cut -f 2 -d ":" | grep -e google -e vending)
 pm disable $listgapps
@@ -65,7 +67,7 @@ while IFS= read -r APP || [ -n "$APP" ]; do
 
     PID=$(pidof "$APP")
     if [ -z "$PID" ]; then
-        echo " - $APP tidak jalan" >> "$LOG"
+        echo " - $APP tidak jalan"
         continue
     fi
 

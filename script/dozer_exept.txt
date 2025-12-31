@@ -1,3 +1,5 @@
+com.facebook.orcc
+com.facebook.orcb
 com.facebook.orca
 com.pengyou.cloneapp
 tkstudio.autoresponderforfb

@@ -1,0 +1,53 @@
+#!/system/bin/sh
+# Script 3: Thermal Powersave (Cool/Battery Mode)
+# Created for DianTk_Modz
+
+LOG="/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log"
+
+enforce_save() {
+    if [ -f "$2" ]; then
+        chmod 0644 "$2"
+        echo "$1" > "$2"
+        # Lock it to ensure it stays in powersave
+        chmod 0444 "$2"
+    fi
+}
+
+apply_powersave() {
+    # 1. Enforce Thermal Limits
+    enforce_save "1" /sys/kernel/eara_thermal/enable
+    enforce_save "1" /sys/module/msm_thermal/parameters/enabled
+    enforce_save "1" /sys/module/msm_thermal/core_control/enabled
+    
+    # 2. Set Policy to Power Allocator (More aggressive than step_wise if avail)
+    # If power_allocator not available, fallback to step_wise but strict
+    find /sys/class/thermal/tz-by-name/*/policy -type f | while read policy; do
+        if grep -q "power_allocator" "$policy"; then
+             enforce_save "power_allocator" "$policy"
+        else
+             enforce_save "step_wise" "$policy"
+        fi
+    done
+
+    # 3. Limit Frequencies (Throttle Early)
+    # Force enable core control to limit heavy tasks
+    enforce_save "1" /sys/module/msm_thermal/core_control/enabled
+    
+    # 4. Enable Xiaomi Thermal Service (Important for battery safety)
+    pm enable com.xiaomi.gamecenter.sdk.service/.PidService >/dev/null 2>&1
+}
+
+ensure_services() {
+    # Make sure thermal services are running
+    find /system/etc/init /vendor/etc/init -type f 2>/dev/null | xargs grep -h "^service" | awk '{print $2}' | grep -i thermal | while read -r svc; do
+        start "$svc"
+    done
+}
+
+# Execution
+ensure_services
+apply_powersave
+
+# Logging & Toast
+echo " •> Thermal Powersave Activated at $(date "+%H:%M:%S")" >> "$LOG"
+am start -a android.intent.action.MAIN -e toasttext "❄️ Thermal POWERSAVE (Cool Mode)" -n bellavita.toast/.MainActivity >/dev/null 2>&1

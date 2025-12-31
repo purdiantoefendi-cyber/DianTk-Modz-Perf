@@ -55,74 +55,6 @@ rm -f /data/swap/INCOMPLETE
 # Set swappiness again to be sure
 echo 200 > /proc/sys/vm/swappiness
 
-# make_cgroup.sh - Buat cgroup custom "diantk_modz" + assign apps dari list
-
-APP_LIST="$AGD/applist_perf.txt"
-
-# === 1. Buat cgroup di cpuctl, stune, cpuset ===
-for BASE in /dev/cpuctl /dev/stune /dev/cpuset; do
-    if [ -d "$BASE" ]; then
-        mkdir -p "$BASE/diantk_modz"
-        chmod 0777 "$BASE/diantk_modz"
-        echo " •> Created $BASE/diantk_modz" >> "$LOG"
-    fi
-done
-
-# Set parameter default (bisa diubah sesuai kebutuhan)
-[ -d /dev/cpuctl/diantk_modz ] && echo 1024 > /dev/cpuctl/diantk_modz/cpu.shares 2>/dev/null
-[ -d /dev/stune/diantk_modz ]  && echo 1024 > /dev/stune/diantk_modz/cpu.shares 2>/dev/null
-[ -d /dev/cpuset/diantk_modz ] && echo 0-7  > /dev/cpuset/diantk_modz/cpus 2>/dev/null
-
-# === 2. Masukkan app dari list ke cgroup ===
-if [ ! -f "$APP_LIST" ]; then
-    echo "File list app tidak ditemukan: $APP_LIST" >> "$LOG"
-    # lanjutkan tanpa exit
-fi
-
-# Fallback pidof jika tidak ada
-pidof() {
-    pid=$(ps | grep "$1" | grep -v grep | awk '{print $2}')
-    echo "$pid"
-}
-
-while IFS= read -r APP || [ -n "$APP" ]; do
-    [ -z "$APP" ] && continue
-
-    PID=$(pidof "$APP")
-    if [ -z "$PID" ]; then
-        echo " - $APP tidak jalan" >> "$LOG"
-        continue
-    fi
-
-    for P in $PID; do
-        [ -d /dev/cpuctl/diantk_modz ] && echo "$P" > /dev/cpuctl/diantk_modz/tasks 2>/dev/null
-        [ -d /dev/stune/diantk_modz ]  && echo "$P" > /dev/stune/diantk_modz/tasks 2>/dev/null
-        [ -d /dev/cpuset/diantk_modz ] && echo "$P" > /dev/cpuset/diantk_modz/tasks 2>/dev/null
-        echo " •> $APP (PID $P) dimasukkan ke cgroup diantk_modz" >> "$LOG"
-    done
-done < "$APP_LIST"
-
-# angle
-cmd settings put global angle_gl_driver_selection_values angle
-cmd settings put global angle_gl_driver_all_angle 1
-
-# animation off
-settings put global transition_animation_scale 0
-settings put global window_animation_scale 0
-settings put global animator_duration_scale 0
-
-# DeepSleep
-dumpsys deviceidle force-idle
-
-# entropy
-echo 1024 > /proc/sys/kernel/random/read_wakeup_threshold
-echo 1024 > /proc/sys/kernel/random/write_wakeup_threshold
-
-# Stop some services
-for svc in logd perfd tcpdump cnss_diag statsd traced idd-logreader idd-logreadermain vendor.perfservice miuibooster system_perf_init; do
-    stop "$svc" 2>/dev/null
-done
-
 # Device online functions
 wait_until_login()
 {
@@ -162,12 +94,78 @@ echo " " >> "$LOG"
 
 echo " Profile Mode:" >> "$LOG"
 
+# make_cgroup.sh - Buat cgroup custom "diantk_modz" + assign apps dari list
+
+APP_LIST="$AGD/applist_perf.txt"
+
+# === 1. Buat cgroup di cpuctl, stune, cpuset ===
+for BASE in /dev/cpuctl /dev/stune /dev/cpuset; do
+    if [ -d "$BASE" ]; then
+        mkdir -p "$BASE/diantk_modz"
+        chmod 0777 "$BASE/diantk_modz"
+        echo " •> Created $BASE/diantk_modz" >> "$LOG"
+    fi
+done
+
+# Set parameter default (bisa diubah sesuai kebutuhan)
+[ -d /dev/cpuctl/diantk_modz ] && echo 1024 > /dev/cpuctl/diantk_modz/cpu.shares 2>/dev/null
+[ -d /dev/stune/diantk_modz ]  && echo 1024 > /dev/stune/diantk_modz/cpu.shares 2>/dev/null
+[ -d /dev/cpuset/diantk_modz ] && echo 0-7  > /dev/cpuset/diantk_modz/cpus 2>/dev/null
+
+# === 2. Masukkan app dari list ke cgroup ===
+if [ ! -f "$APP_LIST" ]; then
+    echo "File list app tidak ditemukan: $APP_LIST" >> "$LOG"
+    # lanjutkan tanpa exit
+fi
+
+# Fallback pidof jika tidak ada
+pidof() {
+    pid=$(ps | grep "$1" | grep -v grep | awk '{print $2}')
+    echo "$pid"
+}
+
+while IFS= read -r APP || [ -n "$APP" ]; do
+    [ -z "$APP" ] && continue
+
+    PID=$(pidof "$APP")
+    if [ -z "$PID" ]; then
+        echo " - $APP tidak jalan"
+        continue
+    fi
+
+    for P in $PID; do
+        [ -d /dev/cpuctl/diantk_modz ] && echo "$P" > /dev/cpuctl/diantk_modz/tasks 2>/dev/null
+        [ -d /dev/stune/diantk_modz ]  && echo "$P" > /dev/stune/diantk_modz/tasks 2>/dev/null
+        [ -d /dev/cpuset/diantk_modz ] && echo "$P" > /dev/cpuset/diantk_modz/tasks 2>/dev/null
+        echo " •> $APP (PID $P) dimasukkan ke cgroup diantk_modz" >> "$LOG"
+    done
+done < "$APP_LIST"
+
+# angle
+cmd settings put global angle_gl_driver_selection_values angle
+cmd settings put global angle_gl_driver_all_angle 1
+
+# animation off
+settings put global transition_animation_scale 0
+settings put global window_animation_scale 0
+settings put global animator_duration_scale 0
+
+# DeepSleep
+dumpsys deviceidle force-idle
+
+# entropy
+echo 1024 > /proc/sys/kernel/random/read_wakeup_threshold
+echo 1024 > /proc/sys/kernel/random/write_wakeup_threshold
+
+# Stop some services
+for svc in logd perfd tcpdump cnss_diag statsd traced idd-logreader idd-logreadermain vendor.perfservice miuibooster system_perf_init; do
+    stop "$svc" 2>/dev/null
+done
+
 # Begin AI tweak
-sleep 3
 nohup sh "$MODDIR/script/DianTk-AI.sh" &
 
-# disable thermal replace
-nohup sh "$MODDIR/disable_thermal" &
+sleep 3
 
 # dozer
 nohup sh "$MODDIR/dozer" &

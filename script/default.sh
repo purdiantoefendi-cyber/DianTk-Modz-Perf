@@ -7,6 +7,8 @@ sync
 BASEDIR=/data/adb/modules/DianTk-Modz-Perf
 LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
 
+nohup sh "$BASEDIR/enable_thermal" &
+
 #autogapps
 listgapps=$(pm list packages | cut -f 2 -d ":" | grep -e google -e vending)
 pm enable $listgapps
