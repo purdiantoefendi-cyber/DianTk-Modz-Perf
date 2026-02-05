@@ -4,7 +4,7 @@ persist.sys.usb.config=mtp,adb
 #Transparansi  
 persist.sys.use_8bpp_alpha=1
 #LowRamFlag
-#ro.config.low_ram=true
+ro.config.low_ram=true
 #ro.config.low_ram.threshold_gb=1
 #ro.config.small_battery=true
 #ro.config.per_app_memcg=true
