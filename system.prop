@@ -42,3 +42,11 @@ ro.max.fling_velocity=12000
 
 # Meningkatkan jumlah event sentuhan yang diproses per detik
 windowsmgr.max_events_per_sec=150
+
+# IORap
+iorapd.readahead.enable=false
+ro.iorapd.enable=false
+ro.boottime.iorapd=false
+iorapd.perfetto.enable=false
+persist.device_config.runtime_native_boot.iorap_readahead_enable=false
+init.svc.iorapd=stopped
