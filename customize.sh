@@ -210,15 +210,8 @@ fi
 if [ ! -e /sdcard/DianTk-Modz-Perf/applist_perf.txt ]; then
   cp -f /data/adb/modules_update/DianTk-Modz-Perf/script/applist_perf.txt /sdcard/DianTk-Modz-Perf/
 fi
-
-# Check dozer file
-if [ ! -e /sdcard/DianTk-Modz-Perf/dozer_exept.txt ]; then
-  cp -f /data/adb/modules_update/DianTk-Modz-Perf/script/dozer_exept.txt /sdcard/DianTk-Modz-Perf/
-fi
 echo
 ui_print "/sdcard/DianTk-Modz-Perf/applist_perf.txt (gamelist/apps for mode performance)"
-echo
-ui_print "/sdcard/DianTk-Modz-Perf/dozer_exept.txt (always on / allow background apps)"
 echo
     ui_print "- Please reboot right NOW."
 fi;
