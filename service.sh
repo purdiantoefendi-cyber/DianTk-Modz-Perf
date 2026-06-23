@@ -17,11 +17,6 @@ if [ ! -e "$AGD/applist_perf.txt" ]; then
   cp -f /data/adb/modules/DianTk-Modz-Perf/script/applist_perf.txt "$AGD/"
 fi
 
-# Check dozer file
-if [ ! -e "$AGD/dozer_exept.txt" ]; then
-  cp -f /data/adb/modules/DianTk-Modz-Perf/script/dozer_exept.txt "$AGD/"
-fi
-
 # Swap on
 echo "-------------------" >> /data/swap/swapfile.log
 now=$(date)
