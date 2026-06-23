@@ -34,6 +34,9 @@ for default in "${default[@]}"; do
 done
 }
 
+#iosched
+echo kyber > /sys/block/mmcblk0/queue/scheduler
+
 # Disable perf it when done
 cmd power set-fixed-performance-mode-enabled false
 
