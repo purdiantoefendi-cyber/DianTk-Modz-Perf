@@ -37,6 +37,9 @@ for render in "${render[@]}"; do
     setprop $render     
 done
 }
+#iosched
+echo performance > /sys/block/mmcblk0/queue/scheduler
+
 # Enable Fixed Performance Mode
 cmd power set-fixed-performance-mode-enabled true
 
