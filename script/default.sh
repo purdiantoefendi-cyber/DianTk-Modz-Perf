@@ -91,64 +91,6 @@ fi
 # ============================================
 echo " •> Extreme Performance Mode reset → default"
 
-# Aktifkan semua little core (cpu0–cpu3)
-for c in /sys/devices/system/cpu/{cpu0,cpu1,cpu2,cpu3}/online; do
-    echo 1 > $c
-done
-
-# Matikan sebagian big core (cpu4, cpu5)
-for c in /sys/devices/system/cpu/{cpu4,cpu5}/online; do
-    echo 1 > $c
-done
-
-# Aktifkan sebagian big core (cpu6, cpu7)
-for c in /sys/devices/system/cpu/{cpu6,cpu7}/online; do
-    echo 0 > $c
-done
-
-#New
-# Target frekuensi (1.4 GHz)
-TARGET=1450000
-
-for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
-    GOV="$cpu/cpufreq/scaling_governor"
-    MIN="$cpu/cpufreq/scaling_min_freq"
-    MAX="$cpu/cpufreq/scaling_max_freq"
-    SET="$cpu/cpufreq/scaling_setspeed"
-    AVAIL="$cpu/cpufreq/scaling_available_frequencies"
-
-    # Pastikan file tersedia
-    [ -f "$AVAIL" ] || continue
-
-    # Ambil daftar frekuensi CPU ini
-    FREQS=$(cat $AVAIL)
-    arr=($FREQS)
-
-    # Cari frekuensi terdekat dengan target
-    closest=${arr[0]}
-    for f in "${arr[@]}"; do
-        diff=$((f > TARGET ? f - TARGET : TARGET - f))
-        best=$((closest > TARGET ? closest - TARGET : TARGET - closest))
-        if [ $diff -lt $best ]; then
-            closest=$f
-        fi
-    done
-
-    FREQ=$closest
-    echo "CPU$(basename $cpu) → lock ke $FREQ kHz (target $TARGET)"
-
-    # Set permission (kalau perlu)
-    chmod 0666 $GOV $MIN $MAX $SET
-
-    # Set governor ke userspace
-    echo userspace > $GOV
-
-    # Lock min/max/setspeed
-    echo $FREQ > $MIN
-    echo $FREQ > $MAX
-    echo $FREQ > $SET
-done
-
 # Set balance
 echo " •> ❄️ Default mode activated at $(date "+%H:%M:%S")" >> $LOG
 
