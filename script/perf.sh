@@ -171,6 +171,3 @@ echo " •> 🌡️ Peformance Mode activated at $(date "+%H:%M:%S")" >> $LOG
 
 # Report
 am start -a android.intent.action.MAIN -e toasttext "🌡️ Peformance Mode..." -n bellavita.toast/.MainActivity
-
-
-exit 0
