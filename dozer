@@ -1,13 +1,1 @@
-#Dozer
-for a in $(pm list packages | cut -f2 -d ':' | grep -v -F -f /sdcard/DianTk-Modz-Perf/dozer_exept.txt);do cmd appops set "$a" RUN_ANY_IN_BACKGROUND ignore;cmd appops set "$a" RUN_IN_BACKGROUND ignore;dumpsys deviceidle whitelist -"$a";done > /dev/null 2>&1
-
-#allways on
-for on in $(cat /sdcard/DianTk-Modz-Perf/dozer_exept.txt); do cmd appops set "$on" RUN_ANY_IN_BACKGROUND allow;cmd appops set "$on" RUN_IN_BACKGROUND allow;dumpsys deviceidle whitelist +"$on";done > /dev/null 2>&1
-
-# Set
-LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
-echo " •> Dozer activated at $(date "+%H:%M:%S")" >> $LOG
-
-# Report
-am start -a android.intent.action.MAIN -e toasttext "Dozer Activated" -n bellavita.toast/.MainActivity
-
+exec>/dev/null 2>&1;for a in $(cmd package list packages --user 0 google|grep -v ia.mo|cut -f2 -d:);do for b in $(cmd package list packages --user 0 -U "$a"|cut -f3 -d:);do cmd connectivity set-background-networking-enabled-for-uid "$b" false;cmd netpolicy remove restrict-background-whitelist "$b";cmd netpolicy add restrict-background-blacklist "$b";cmd netpolicy remove app-idle-whitelist "$b";done;cmd activity clear-ignore-delivery-group-policy "$a";cmd activity service-restart-backoff disable "$a";cmd activity set-bg-restriction-level --user 0 "$a" hibernation;cmd activity set-foreground-service-delegate --user 0 "$a" stop;cmd activity set-ignore-delivery-group-policy "$a";cmd activity set-inactive "$a" true;cmd activity set-standby-bucket "$a" 50;cmd activity set-standby-bucket "$a" restricted;cmd app_hibernation set-state "$a" true;cmd appops set "$a" RUN_ANY_IN_BACKGROUND ignore;cmd appops set "$a" RUN_IN_BACKGROUND ignore;cmd appops set "$a" SYSTEM_ALERT_WINDOW allow;cmd connectivity set-package-networking-enabled false "$a";cmd deviceidle whitelist "-$a";cmd package art clear-app-profiles "$a";cmd package log-visibility --disable "$a";cmd sdk_sandbox stop "$a";cmd shortcut clear-shortcuts "$a";cmd usagestats clear-last-used-timestamps "$a";cmd usagestats delete-package-data "$a";done
