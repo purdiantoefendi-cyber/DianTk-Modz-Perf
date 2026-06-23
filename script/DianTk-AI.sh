@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# combined_service.sh - AI Perf Manager + Proteksi App + Fast Charging
+# combined_service.sh - AI Perf Manager + Fast Charging (Tanpa Proteksi App)
 # By Morpheus / DianTk Modz Edition
 
 sleep 1
@@ -12,7 +12,6 @@ LOG=$AGD/DianTk-log.log
 MSC=$BASEDIR/script
 
 # === File daftar app ===
-LIST_FILE="$AGD/dozer_exept.txt"
 APP_LIST="$AGD/applist_perf.txt"
 
 # === Notif AI start ===
@@ -27,9 +26,6 @@ SAVE_SCRIPT="$MSC/save.sh"
 # === Variabel tracking state ===
 LAST_STATE=""
 CURRENT_APP=""
-
-# === Tracking PID proteksi biar tidak spam log ===
-PROTECTED_PIDS=""
 
 # === Variabel Fast Charging ===
 set_value() {
@@ -72,14 +68,6 @@ run_script() {
     fi
 }
 
-# === Fungsi cek apakah PID sudah pernah diproteksi ===
-is_protected() {
-    echo "$PROTECTED_PIDS" | grep -qw "$1"
-}
-mark_protected() {
-    PROTECTED_PIDS="$PROTECTED_PIDS $1"
-}
-
 # === Loop utama gabungan ===
 while true; do
     ##### Bagian 1: AI Perf Manager #####
@@ -95,30 +83,6 @@ while true; do
         fi
     else
         run_script "save"
-    fi
-
-    ##### Bagian 2: Proteksi App dari dozer_exept.txt #####
-    if [ -f "$LIST_FILE" ]; then
-        while read -r APP; do
-            [ -z "$APP" ] && continue
-            PID=$(pidof "$APP")
-            [ -z "$PID" ] && continue
-
-            for P in $PID; do
-                echo -1000 > /proc/$P/oom_score_adj 2>/dev/null
-                [ -d /dev/stune/top-app ]  && echo $P > /dev/stune/top-app/tasks 2>/dev/null
-                [ -d /dev/cpuctl/top-app ] && echo $P > /dev/cpuctl/top-app/tasks 2>/dev/null
-                [ -d /dev/cpuset/top-app ] && echo $P > /dev/cpuset/top-app/tasks 2>/dev/null
-                dumpsys deviceidle whitelist +$APP 2>/dev/null
-
-                if ! is_protected "$P"; then
-                    MSG=" •> Proteksi aktif di top-app untuk $APP (PID $P)"
-                    echo "$MSG"
-                    echo "$MSG" >> $LOG
-                    mark_protected "$P"
-                fi
-            done
-        done < "$LIST_FILE"
     fi
 
     ##### Bagian 3: Fast Charging #####
