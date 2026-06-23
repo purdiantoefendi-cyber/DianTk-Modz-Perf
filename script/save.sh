@@ -63,41 +63,6 @@ fi
 # ============================================
 echo " •> Powersave Mode applied to diantk_modz"
 
-# Pastikan semua core bisa diatur governor & setspeed
-#for s in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $s/cpuinfo_max_freq; done
-#for j in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $j/scaling_governor; done
-
-# Matikan big cores (cpu4-cpu7)
-for c in /sys/devices/system/cpu/{cpu4,cpu5,cpu6,cpu7}/online; do
-    echo 0 > $c
-done
-
-# Kunci core kecil di frekuensi minimum
-
-# Set governor ke userspace
-#for l in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo userspace > $l/scaling_governor; done
-
-# Lock ke frekuensi minimum
-#for i in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo 0 > $i/scaling_setspeed; done
-
-#New
-for i in /sys/devices/system/cpu/cpu*/cpufreq/; do
-    GOV="$i/scaling_governor"
-    MIN="$i/scaling_min_freq"
-    MAX="$i/scaling_max_freq"
-    SET="$i/scaling_setspeed"
-
-    chmod 0666 $GOV $MIN $MAX $SET
-
-    echo userspace > $GOV
-
-    FREQ=$(cat $i/cpuinfo_min_freq)
-
-    echo $FREQ > $MIN
-    echo $FREQ > $MAX
-    echo $FREQ > $SET
-done
-
 # Report
 am start -a android.intent.action.MAIN -e toasttext "💤 Powersaver Mode..." -n bellavita.toast/.MainActivity
 echo " •> 💤 Powersaver Mode $(date +"%d-%m-%Y %r")" >> /storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
