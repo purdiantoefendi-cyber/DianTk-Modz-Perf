@@ -126,37 +126,6 @@ fi
 # ============================================
 echo " •> Extreme Performance Mode applied to diantk_modz"
 
-# Pastikan semua core bisa diatur governor-nya
-#for s in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $s/cpuinfo_max_freq; done
-#for j in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do chmod 0777 $j/scaling_governor; done
-
-# Aktifkan semua core (cpu0–cpu7)
-for c in /sys/devices/system/cpu/cpu*/online; do
-    echo 1 > $c
-done
-
-# Governor ke userspace dan pakai max freq
-#for l in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo userspace > $l/scaling_governor; done
-#for i in /sys/devices/system/cpu/{cpu1,cpu2,cpu3,cpu4,cpu5,cpu6,cpu7}/cpufreq/; do echo $(cat $i/cpuinfo_max_freq) > $i/scaling_setspeed; done
-
-#New
-for i in /sys/devices/system/cpu/cpu*/cpufreq/; do
-    GOV="$i/scaling_governor"
-    MIN="$i/scaling_min_freq"
-    MAX="$i/scaling_max_freq"
-    SET="$i/scaling_setspeed"
-
-    chmod 0666 $GOV $MIN $MAX $SET
-
-    echo userspace > $GOV
-
-    FREQ=$(cat $i/cpuinfo_max_freq)
-
-    echo $FREQ > $MIN
-    echo $FREQ > $MAX
-    echo $FREQ > $SET
-done
-
 # Set perf
 echo " •> 🌡️ Peformance Mode activated at $(date "+%H:%M:%S")" >> $LOG
 
