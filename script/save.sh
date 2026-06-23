@@ -9,6 +9,9 @@ nohup sh "$BASEDIR/powersave_thermal" &
 # Sync to data in the rare case a device crashes
 sync
 
+#iosched
+echo kyber > /sys/block/mmcblk0/queue/scheduler
+
 # Disable perf it when done
 cmd power set-fixed-performance-mode-enabled false
 
