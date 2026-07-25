@@ -1,0 +1,3 @@
+scale=0.6;for a in $(cat /sdcard/DianTk-Modz-Perf/applist_perf.txt);do cmd device_config put game_overlay "$a" mode=2;cmd game set --mode 2 --downscale "$scale" "$a";cmd game mode performance "$a";cmd activity force-stop "$a";done 2>/dev/null
+
+am start -a android.intent.action.MAIN -e toasttext "Downscale Game Activated" -n bellavita.toast/.MainActivity

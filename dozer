@@ -1,0 +1,99 @@
+#!/system/bin/sh
+# Lokasi direktori module
+MODDIR=${0%/*}
+
+# String XML yang akan dicari dan dihapus (GMS Whitelist)
+GMS0="\"com.google.android.gms\""
+STR1="allow-in-power-save package=$GMS0"
+STR2="allow-in-data-usage-save package=$GMS0"
+
+# 1. Patch XML dari module lain yang mungkin bentrok (Conflicting Modules)
+PATCH_MX() {
+  # Mencari file XML di direktori Magisk/KSU
+  MXML="$(find /data/adb/modules/* -type f -iname "*.xml" -print 2>/dev/null)"
+  for MX in $MXML; do
+    # Filter agar jika ada string whitelist, langsung dihapus
+    if grep -qE "$STR1|$STR2" "$MX"; then
+      sed -i "/$STR1/d;/$STR2/d" "$MX"
+    fi
+  done
+}
+
+# 2. Patch XML bawaan sistem (Jika ingin tetap dilakukan via service.sh)
+PATCH_SX() {
+  SXML="$(find /system_ext/* /system/* /product/* /vendor/* -type f -iname '*.xml' -print 2>/dev/null)"
+  for S in $SXML; do
+    if grep -qE "$STR1|$STR2" "$S" 2>/dev/null; then
+      # Buat struktur direktori di dalam module
+      mkdir -p "$(dirname "$MODDIR$S")"
+      # Salin file asli ke dalam module dan hapus baris whitelist
+      cp -af "$S" "$MODDIR$S"
+      sed -i "/$STR1/d;/$STR2/d" "$MODDIR$S"
+    fi
+  done
+
+  # Pindahkan folder product & vendor ke dalam /system/ agar terbaca oleh Magisk
+  for P in product vendor; do
+    if [ -d "$MODDIR/$P" ]; then
+      mkdir -p "$MODDIR/system/$P"
+      mv -f "$MODDIR/$P" "$MODDIR/system/"
+    fi
+  done
+}
+
+# Eksekusi fungsi patch
+PATCH_MX
+PATCH_SX
+
+# 3. Runtime Patch (Sangat direkomendasikan untuk service.sh)
+# Mencabut GMS dari daftar pengecualian baterai secara langsung tanpa menunggu reboot
+dumpsys deviceidle whitelist -com.google.android.gms > /dev/null 2>&1
+
+for a in $(cmd package list packages gms|cut -f2 -d:);do for b in FOREGROUND_SERVICE_SPECIAL_USE INSTANT_APP_START_FOREGROUND RUN_ANY_IN_BACKGROUND RUN_IN_BACKGROUND START_FOREGROUND;do cmd appops set "$a" "$b" ignore;done;for c in $(cmd package list packages -U "$a"|cut -f3 -d:);do cmd netpolicy remove restrict-background-whitelist "$c";cmd netpolicy add restrict-background-blacklist "$c";cmd netpolicy remove app-idle-whitelist "$c";done;cmd activity service-restart-backoff disable "$a";cmd activity set-bg-restriction-level --user 0 "$a" hibernation;cmd activity set-foreground-service-delegate --user 0 "$a" stop;cmd activity set-inactive "$a" true;cmd activity set-standby-bucket "$a" 50;cmd app_hibernation set-state "$a" true;cmd deviceidle except-idle-whitelist "-$a";cmd deviceidle sys-whitelist "-$a";cmd deviceidle whitelist "-$a";cmd dropbox add-low-priority "$a";cmd package art clear-app-profiles "$a";cmd package log-visibility --disable "$a";cmd shortcut clear-shortcuts "$a";cmd tare set-vip 0 "$a" false;cmd usagestats clear-last-used-timestamps "$a";done&
+
+# // run component
+  gms_doze() {
+# // variable
+    GMS=$(cat /data/media/0/DianTk-Modz-Perf/gms/service)
+    GMS1="auth.managed.admin.DeviceAdminReceiver"
+    GMS2="mdm.receivers.MdmDeviceAdminReceiver"
+    GMS3="com.google.android.gms"
+    appops_background=ignore
+    appops_foreground=ignore
+    standby_bucket=never
+    inactive=true
+
+# // Disable Collective Device Administrators [ Rooted ]
+  for service in $GMS1 $GMS2; do
+    pm disable "$GMS3/.$service"
+  done
+
+# // Disable GMS In Background
+  for kill in $GMS; do
+    am force-stop "$kill"
+    cmd activity force-stop "$kill"
+    cmd activity kill "$kill"
+    am kill-all "$kill"
+  done > /dev/null 2>&1 &
+
+# // GMS Fix Drain For [ Rooted ]
+    pm disable com.google.android.gms/.chimera.GmsIntentOperationService
+
+# // Add GMS To Battery Optimization
+    dumpsys deviceidle whitelist -"$GMS3"
+    cmd appops set "$GMS3" RUN_ANY_IN_BACKGROUND "$appops_background"
+    cmd appops set "$GMS3" RUN_IN_BACKGROUND "$appops_foreground"
+    am set-inactive --user 0 "$GMS3" "$inactive"
+    am set-standby-bucket --user 0 "$GMS3" "$standby_bucket"
+    cmd app_hibernation set-state "$GMS3" true
+  }
+  
+  #allways on
+for on in $(cat /sdcard/DianTk-Modz-Perf/lock_applist.txt); do cmd appops set "$on" RUN_ANY_IN_BACKGROUND allow;cmd appops set "$on" RUN_IN_BACKGROUND allow;dumpsys deviceidle whitelist +"$a";am set-inactive "$on" false;done > /dev/null 2>&1
+  
+# Set
+LOG=/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log
+echo " •> Dozer activated at $(date "+%H:%M:%S")" >> $LOG
+
+# Report
+am start -a android.intent.action.MAIN -e toasttext "Dozer Activated" -n bellavita.toast/.MainActivity

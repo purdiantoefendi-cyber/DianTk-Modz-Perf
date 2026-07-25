@@ -1,0 +1,9 @@
+#!/bin/sh
+am start -a android.intent.action.MAIN -e toasttext "RAM Has Been Cleared Telegram: @Z907L" -n bellavita.toast/.MainActivity
+for package in $(pm list packages -3 | awk -F':' '{print $2}'); do
+    if [ "$package" != "android" ]; then
+        pkill -9 -f "$package"
+    fi
+done
+exit 0
+
