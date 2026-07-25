@@ -1,0 +1,71 @@
+#!/system/bin/sh
+# Script 1: Disable Thermal (Gaming Mode)
+# Created for DianTk_Modz
+
+LOG="/storage/emulated/0/DianTk-Modz-Perf/DianTk-log.log"
+[ ! -d "/storage/emulated/0/DianTk-Modz-Perf" ] && mkdir -p "/storage/emulated/0/DianTk-Modz-Perf"
+
+write_value() {
+    if [ -f "$2" ]; then
+        chmod 0644 "$2"
+        echo "$1" > "$2"
+        chmod 0000 "$2"
+    fi
+}
+
+lock_thermal() {
+    # 1. MTK Specific Throttling Kill
+    write_value "0" /sys/kernel/eara_thermal/enable
+    write_value "1" /sys/kernel/eara_thermal/fake_throttle
+    write_value "0" /proc/mtk-perf/mt_throttle_ms
+    write_value "0" /proc/perfmgr/boost_ctrl/eas_ctrl/debug_schedplus_up_throttle
+    write_value "0" /proc/perfmgr/boost_ctrl/eas_ctrl/debug_schedplus_down_throttle
+    write_value "0" /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_schedplus_up_throttle
+    write_value "0" /proc/perfmgr/boost_ctrl/eas_ctrl/perfserv_schedplus_down_throttle
+    write_value "0" /sys/kernel/fpsgo/fbt/enable_switch_down_throttle
+    write_value "0" /sys/module/dm_snapshot/parameters/snapshot_copy_throttle
+    
+    # 2. PowerNV & Tracing Throttling
+    write_value "0" /sys/kernel/tracing/events/power/powernv_throttle/enable
+    write_value "0" /sys/devices/platform/bootdevice/ufshpb_lu2/throttle_pre_req
+    write_value "0" /sys/devices/platform/bootdevice/ufshpb_lu2/throttle_map_req
+    
+    # 3. Qualcomm/Generic Thermal Kill
+    write_value "N" /sys/module/msm_thermal/parameters/enabled
+    write_value "0" /sys/module/overheat_mitigation/parameters/enable
+    write_value "0" /sys/module/msm_thermal/core_control/enabled
+    write_value "0" /proc/cpufreq/cpufreq_imax_thermal_protect
+    
+    # 4. CPU & GPU Limits Unlock
+    write_value "0" /sys/power/cpufreq_min_limit
+    write_value "0" /sys/power/cpufreq_max_limit
+    
+    # 5. Xiaomi Game Service Handling
+    pm disable com.xiaomi.gamecenter.sdk.service/.PidService >/dev/null 2>&1
+    pm clear com.xiaomi.gamecenter.sdk.service >/dev/null 2>&1
+}
+
+kill_services() {
+    # Stop all running thermal services identified via props
+    for thermal in $(resetprop | awk -F '[][]' '/thermal/ {print $2}'); do
+        if [[ $(resetprop "$thermal") == "running" ]]; then
+            stop "${thermal/init.svc./}"
+        fi
+    done
+}
+
+blind_sensors() {
+    # Chmod 000 recursive on thermal zones to blind the system
+    find /sys/devices/virtual/thermal -name "temp" -type f -exec chmod 000 {} +
+    find /sys/class/thermal/thermal_message -type f -exec chmod 000 {} +
+    chmod 000 /proc/driver/thermal*
+}
+
+# Execution
+kill_services
+lock_thermal
+blind_sensors
+
+# Logging & Toast
+echo " •> Disable Thermal Activated at $(date "+%H:%M:%S")" >> "$LOG"
+am start -a android.intent.action.MAIN -e toasttext "🔥 Thermal DISABLED (Gaming Mode)" -n bellavita.toast/.MainActivity >/dev/null 2>&1

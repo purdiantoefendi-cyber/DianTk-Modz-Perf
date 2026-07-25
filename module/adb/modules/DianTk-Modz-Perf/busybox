@@ -1,0 +1,66 @@
+#!/system/bin/sh
+### FeraVolt. 2022 ###
+
+deploy(){
+A=$(getprop ro.product.cpu.abi);
+set_perm_recursive $MODPATH/system/xbin/ 0 0 0755 0777;
+chmod -R 755 $MODPATH/system/xbin;
+rm -f $MODPATH/isinstalled;
+if [ "$A" = "$(echo "$A"|grep "arm64")" ]; then
+mv -f $MODPATH/system/xbin/busybox8 $MODPATH/system/xbin/busybox;
+rm -Rf $MODPATH/system/xbin/busybox7;
+rm -Rf $MODPATH/system/xbin/busybox64;
+rm -Rf $MODPATH/system/xbin/busybox86;
+ui_print "- 64 bit ARM arch detected.";
+elif [ "$A" = "$(echo "$A"|grep "armeabi")" ]; then
+mv -f $MODPATH/system/xbin/busybox7 $MODPATH/system/xbin/busybox;
+rm -Rf $MODPATH/system/xbin/busybox8;
+rm -Rf $MODPATH/system/xbin/busybox64;
+rm -Rf $MODPATH/system/xbin/busybox86;
+ui_print "- 32bit ARM arch detected.";
+elif [ "$A" = "$(echo "$A"|grep "x86_64")" ]; then
+mv -f $MODPATH/system/xbin/busybox64 $MODPATH/system/xbin/busybox;
+rm -Rf $MODPATH/system/xbin/busybox86;
+rm -Rf $MODPATH/system/xbin/busybox7;
+rm -Rf $MODPATH/system/xbin/busybox8;
+ui_print "- x86_64 arch detected.";
+elif [ "$A" = "$(echo "$A"|grep "x86")" ]; then
+mv -f $MODPATH/system/xbin/busybox86 $MODPATH/system/xbin/busybox;
+rm -Rf $MODPATH/system/xbin/busybox64;
+rm -Rf $MODPATH/system/xbin/busybox7;
+rm -Rf $MODPATH/system/xbin/busybox8;
+ui_print "- x86_64 arch detected.";
+else
+abort "Can't detect arch of device!";
+fi;
+};
+
+if [ -d /data/adb/modules/busybox-brutal ]; then
+deploy;
+else
+if [ -d /data/adb/modules/busybox-ndk ]; then
+rm -rf $MODPATH
+abort "- Please uninstall another busybox-ndk module and reboot."
+elif [ -e /system/xbin/busybox ]; then
+rm -rf $MODPATH
+abort "- Please uninstall another busybox from /system/xbin/ and reboot."
+elif [ -e /system/bin/busybox ]; then
+rm -rf $MODPATH
+abort "- Please uninstall another busybox from /system/bin/ and reboot."
+elif [ -e /vendor/bin/busybox ]; then
+rm -rf $MODPATH
+abort "- Please uninstall another busybox from /vendor/bin/ and reboot."
+else
+deploy;
+if [ ! -e /system/xbin ]; then
+mkdir $MODPATH/system/bin;
+set_perm_recursive $MODPATH/system/bin/ 0 0 0755 0777;
+chmod -R 755 $MODPATH/system/bin;
+mv -f $MODPATH/system/xbin/busybox $MODPATH/system/bin/busybox;
+rm -Rf $MODPATH/system/xbin;
+ui_print "- Installing to /system/bin/..";
+fi;
+ui_print "- Brutal busybox by FeraVolt installed successfully.";
+ui_print "- Please reboot right NOW.";
+fi;
+fi;

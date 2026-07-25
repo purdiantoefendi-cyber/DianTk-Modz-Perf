@@ -1,0 +1,7 @@
+#!/bin/sh
+    find /data/data/*/cache/* -delete &>/dev/null
+    find /data/data/*/code_cache/* -delete &>/dev/null
+        find /data/user_de/0/*/cache/* -delete &>/dev/null
+    find /data/user_de/0/*/code_cache/* -delete &>/dev/null
+       find /sdcard/Android/data/*/cache/* -delete &>/dev/null
+    
