@@ -1,0 +1,7 @@
+#!/system/bin/sh
+#FSTRIM
+fstrim -v /data
+fstrim -v /system
+fstrim -v /cache
+fstrim -v /vendor
+fstrim -v /product
